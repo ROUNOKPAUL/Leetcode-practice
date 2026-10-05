@@ -1,29 +1,33 @@
 class Solution {
 public:
     bool checkValidString(string s) {
-        int n = s.length();
-        vector<vector<bool>> t(n + 1, vector<bool>(n + 1, false)); // initialize 2D dp array
-        t[n][0]=true;//base case
-        for (int i = n - 1; i >= 0; i--) {
-            for (int open = 0; open <= n; open++) {
-                bool isValid = false;
-                if (s[i] == '*') {
-                    if (open > 0) {
-                        isValid |=
-                            t[i + 1][open - 1]; // treating as ')' brackets
-                    }
-                    isValid |= t[i + 1][open];     // treating as empty
-                    isValid |= t[i + 1][open + 1]; // treating as '(' bracket
-                } else if (s[i] == '(') {
-                    isValid |= t[i + 1][open + 1];
-                } else if (s[i] == ')') {
-                    if (open > 0) {
-                        isValid |= t[i + 1][open - 1];
-                    }
+        int n=s.length();
+        stack<int>openSt;
+        stack<int>asteriskSt;
+        for(int i=0;i<n;i++){
+            if(s[i]=='('){
+                openSt.push(i);
+            }
+            else if(s[i]=='*'){
+                asteriskSt.push(i);
+            }else{
+                if(!openSt.empty()){
+                    openSt.pop();
+                }else if(!asteriskSt.empty()){
+                    asteriskSt.pop();
+                }else{
+                    return false;
                 }
-                t[i][open]=isValid;
             }
         }
-        return t[0][0];
+        //example:"*(())(*"
+        while(!openSt.empty()&&!asteriskSt.empty()){
+            if(openSt.top()>asteriskSt.top()){
+                return false;
+            }
+            openSt.pop();
+            asteriskSt.pop();
+        }
+        return openSt.empty();
     }
 };
