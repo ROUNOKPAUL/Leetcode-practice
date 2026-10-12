@@ -1,44 +1,24 @@
 class Solution {
 public:
     long long minSumSquareDiff(vector<int>& nums1, vector<int>& nums2, int k1, int k2) {
-        vector<int> difference( (int) 1e5+1);
-        
-        for(int i = 0; i<nums1.size();i++)
-        {
-            difference[abs(nums1[i] - nums2[i])]++;
+        int n=nums1.size();
+        vector<int>countDiff(1e5+1,0);
+        for(int i=0;i<n;i++){
+            int d=abs(nums1[i]-nums2[i]);
+            countDiff[d]++;
         }
-        
-        int value = 0, left = k1+k2;
-        int acc = 0;
-        
-        for(int i = (int) 1e5; i>=0; i--)
-        {
-            acc = difference[i];
-            if(acc <= left)
-            {
-                if(i<=1)
-                    return 0;
-                
-                difference[i-1] += difference[i];
-                difference[i]=0;
-                left -= acc;
-            }
-            else
-            {
-                if(i==0)
-                    return 0;
-                difference[i] -= left;
-                difference[i-1] += left;
-                break;
-            }
+        int k=k1+k2;
+        for(int currDiff=1e5;currDiff>0&& k>0;currDiff--){
+            //currDiff
+            int countOps=min(countDiff[currDiff],k);
+            countDiff[currDiff]-=countOps;//we did currdiff-1
+            countDiff[currDiff-1]+=countOps;
+            k-=countOps;
         }
-        long long answer = 0;
-        
-        for(int i = 1ll; i<=1e5; i++)
-        {
-            answer += (long long)difference[i] * ((long long)i*i);
+        long long result=0;
+        for(long long d=1;d<=1e5;d++){
+            result+=(countDiff[d]*d*d);
         }
-        
-        return answer;
+        return result;
     }
 };
