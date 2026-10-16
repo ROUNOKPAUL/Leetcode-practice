@@ -1,17 +1,26 @@
 class Solution {
 public:
+    int MOD=1e9+7;
     int maxSum(vector<int>& nums, int k) {
-        const long long MOD = 1e9 + 7;
-        int cnt[30] = {};  // coins in each bit column, never changes
-        for (int x : nums)
-            for (int b = 0; b < 30; b++) cnt[b] += x >> b & 1;
-        long long total = 0;
-        for (int i = 0; i < k; i++) {  // build row i of the stacked picture
-            long long row = 0;
-            for (int b = 0; b < 30; b++)
-                if (cnt[b] > i) row |= 1LL << b;  // a coin from every column with more than i coins
-            total = (total + row * row) % MOD;
+        vector<int>count(32,0);
+        for(int &num:nums){
+            for(int b=0;b<32;b++){
+                if(num&(1<<b)){
+                    count[b]++;//found a '1 in this bit position b
+                }
+            }        
         }
-        return total;
+        long long result=0;
+        while(k--){
+            long long curr=0;
+            for(int b=0;b<32;b++){
+                if(count[b]>0){
+                    count[b]--;
+                    curr=(curr|(1<<b));
+                }
+            }
+            result=(result+(curr*curr))%MOD;
+        }
+        return result;
     }
 };
