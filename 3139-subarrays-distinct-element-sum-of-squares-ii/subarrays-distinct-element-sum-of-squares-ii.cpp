@@ -1,78 +1,58 @@
-#define ll long long int  
 class Solution {
 public:
-    const ll mod = 1e9 + 7;
-    vector<ll> seg_tree, lazy, sq_sum;
-    void apply(int x, ll len, ll k)
-    {
-
-
-        sq_sum[x] = (sq_sum[x] + (2 * seg_tree[x] * k) + k * k * len)%mod;
-        seg_tree[x] = (seg_tree[x] + k * len)%mod;
-
-        lazy[x] = (lazy[x] + k)%mod;
-
-
+    typedef long long ll;
+    int MOD = 1e9 + 7;
+    int n;
+    vector<ll> sqSumSegTree;
+    vector<ll> sumSegTree;
+    vector<ll> lazyTree;
+    void lazyAddition(int i,int l, int r, int val){
+        int len=(r-l+1);
+        sqSumSegTree[i]+=2*val*sumSegTree[i]+len*val*val;
+        sumSegTree[i]+=(len*val);
     }
-    void update(int i, int j, int x, int l, int r)
-    {
-        if(j < l || r < i)
-            return;
-
-        if(l <= i && j <= r)
-        {
-            
-            ll len = (ll)(j-i+1);
-            apply(x, len, 1);
-            
-            return;
-
+    void updateRange(int start, int end, int i, int l, int r, int val) {
+        if (lazyTree[i] != 0) {
+            lazyAddition(i, l, r, lazyTree[i]);
+            if (l != r) {
+                lazyTree[2 * i + 1] += lazyTree[i];
+                lazyTree[2 * i + 2] += lazyTree[i];
+            }
+            lazyTree[i] = 0;
         }
-
-
-
-
-        int mid = (i + j)/2;
-
-        if(lazy[x] != 0)
-        {
-
-            
-            apply(2*x+1, mid-i+1, lazy[x]);
-            apply(2*x+2, j-mid, lazy[x]);
-
-            lazy[x] = 0;
-
+        //out of range
+        if(l>end || r<start || l>r){
+            return;
         }
-
-        update(i, mid, 2*x + 1, l, r);
-        update(mid + 1, j, 2*x + 2, l, r);
-
-        seg_tree[x] = seg_tree[2*x + 1] + seg_tree[2*x + 2];
-        sq_sum[x] =  sq_sum[2*x + 1] + sq_sum[2*x + 2];
-
+        //completely within range
+        if(l>=start && r<=end){
+            lazyAddition(i,l,r,val);
+            if(l!=r){
+                lazyTree[2*i+1]+=val;
+                lazyTree[2*i+2]+=val;
+            }
+            return;
+        }
+        int mid=l+(r-l)/2;
+        updateRange(start,end,2*i+1,l,mid,val);
+        updateRange(start,end,2*i+2,mid+1,r,val);
+        sumSegTree[i]=sumSegTree[2*i+1]+sumSegTree[2*i+2];
+        sqSumSegTree[i]=sqSumSegTree[2*i+1]+sqSumSegTree[2*i+2];
     }
-    int sumCounts(vector<int>& nums) 
-    {
-        int n = nums.size();
-
-        vector<int> last(1e5+1, -1);
-        seg_tree.resize(4*n,0);
-        lazy.resize(4*n, 0);
-        sq_sum.resize(4*n, 0);
-
-
-        ll ans = 0;
-
-        for(int i = 0; i < n; i++)
-        {
-            update(0, n - 1, 0, last[nums[i]]+1, i);
-            last[nums[i]] = i;
-            ans = (ans%mod + sq_sum[0]%mod)%mod;
-
+    int sumCounts(vector<int>& nums) {
+        n = nums.size();
+        sqSumSegTree.assign(4 * n,0);
+        sumSegTree.assign(4 * n,0);
+        lazyTree.assign(4 * n,0);
+        vector<int> lastSeenIndex(100001, -1);
+        ll result = 0;
+        for (int i = 0; i < n; i++) {
+            int start = lastSeenIndex[nums[i]] + 1;
+            int end = i;
+            updateRange(start, end, 0, 0, n - 1, 1);
+            result = (result + sqSumSegTree[0]) % MOD;
+            lastSeenIndex[nums[i]] = i;
         }
-
-        return ans;    
-        
+        return result;
     }
 };
