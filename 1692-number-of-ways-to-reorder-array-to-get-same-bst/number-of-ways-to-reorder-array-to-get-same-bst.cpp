@@ -1,37 +1,40 @@
 class Solution {
-    long long MOD = 1e9 + 7;
-    vector<vector<long long>> combinations;
-    
 public:
-    int numOfWays(vector<int>& nums) {
-        int n = nums.size();
-        combinations.assign(n + 1, vector<long long>(n + 1, 0));
-        
-        for (int i = 0; i <= n; i++) {
-            combinations[i][0] = 1;
-            for (int j = 1; j <= i; j++) {
-                combinations[i][j] = (combinations[i - 1][j - 1] + combinations[i - 1][j]) % MOD;
+    typedef long long ll;
+    ll MOD= 1e9+7;
+    vector<vector<ll>>PT;
+    int solve(vector<int>&nums){
+        int n=nums.size();
+        if(n<3){
+            return 1;
+        }
+        vector<int>left_array;
+        vector<int>right_array;
+        int root=nums[0];
+        for(int i=1;i<n;i++){
+            if(nums[i]<root){
+                left_array.push_back(nums[i]);
+            }
+            else{
+                right_array.push_back(nums[i]);
             }
         }
-        
-        return (getWays(nums) - 1 + MOD) % MOD;
+        ll x=solve(left_array)%MOD;
+        ll y=solve(right_array)%MOD;
+        //n-1 C left_array.size()
+        ll z=PT[n-1][left_array.size()];
+        return ((x*y)%MOD*z)%MOD;
     }
-    
-private:
-    long long getWays(vector<int>& nums) {
-        if (nums.size() <= 2) return 1;
-        
-        int root = nums[0];
-        vector<int> left, right;
-        for (int i = 1; i < nums.size(); i++) {
-            if (nums[i] < root) left.push_back(nums[i]);
-            else right.push_back(nums[i]);
+    int numOfWays(vector<int>& nums) {
+        int n=nums.size();
+        PT.resize(n+1);
+        //Populating Pascals Triangle
+        for(int i=0;i<=n;i++){
+            PT[i]=vector<ll>(i+1,1);
+            for(int j=1;j<i;j++){
+                PT[i][j]=(PT[i-1][j-1]+PT[i-1][j])%MOD;
+            }
         }
-        
-        long long leftWays = getWays(left);
-        long long rightWays = getWays(right);
-        long long ways = combinations[left.size() + right.size()][left.size()];
-        
-        return (((ways * leftWays) % MOD) * rightWays) % MOD;
+        return (solve(nums)-1)%MOD;
     }
 };
