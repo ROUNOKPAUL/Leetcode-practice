@@ -1,46 +1,41 @@
-#define ll long long
 class Solution {
 public:
-    ll dig_sum(int n)
-    {
-        ll sum=0;
-        while(n!=0)
-        {
-            sum+=(n%10);
-            n/=10;
+    int getDigitSum(int num){
+        int sum=0;
+        while(num>0){
+            sum+=num%10;
+            num/=10;
         }
         return sum;
     }
     int minSwaps(vector<int>& nums) {
         int n=nums.size();
-        vector<tuple<ll,int,int>> v;
-        for(int i=0;i<n;i++)
-        {
-            v.push_back(make_tuple(dig_sum(nums[i]),i,nums[i]));
-        }
-        sort(v.begin(),v.end(),[&](auto &a,auto &b){
-            if(get<0>(a)!=get<0>(b)) return get<0>(a)<get<0>(b);
-            return get<2>(a)<get<2>(b);
-        });
-        //for(auto [d,ind,num]:v) cout<<d<<" "<<num<<endl;
-
-        vector<bool> vis(n,false);
-        int ans=0;
-        //we would have disjoint cycles and swaps_requried=(cycle_length-1)
-        //no changes are needed if sorted_index=original_index
-        for(int i=0;i<n;i++)
-        {
-            if(vis[i]==true || i==get<1>(v[i])) continue;
-            int len=0;
-            int head=i;
-            while(!vis[head])//until we see head again
-            {
-                vis[head]=true;
-                head=get<1>(v[head]);
-                len++;
+        vector<int>afterSorted(nums);
+        auto lambda=[&](int num1,int num2){
+            int num1DigitSum=getDigitSum(num1);
+            int num2DigitSum=getDigitSum(num2);
+            if(num1DigitSum!=num2DigitSum){
+                return num1DigitSum<num2DigitSum;
             }
-            ans+=(len-1);
-        } 
-        return ans;
+            return num1<num2;
+        };
+        sort(begin(afterSorted),end(afterSorted),lambda);
+        unordered_map<int,int>valToIdx;
+        for(int i=0;i<n;i++){
+            valToIdx[nums[i]]=i;
+        }
+        int swapCount=0;
+        for(int i=0;i<n;i++){
+            int expectedVal=afterSorted[i];
+            int currVal=nums[i];
+            if(expectedVal==currVal)continue;
+            int idx=valToIdx[expectedVal];
+            nums[i]=expectedVal;
+            nums[idx]=currVal;
+            valToIdx[expectedVal]=i;
+            valToIdx[currVal]=idx;
+            swapCount++;
+        }
+        return swapCount;
     }
 };
